@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel — Baixo Giro Robótica &amp; Performance LEGO Obsoleto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#12131a;
+    --surface:#1b1d29;
+    --surface-2:#232538;
+    --border:#2c2f45;
+    --text:#eef0f6;
+    --muted:#8d90a8;
+    --gold:#e8a33d;
+    --coral:#e0604f;
+    --teal:#4fc9a8;
+    --blue:#6c8cd5;
+    --purple:#a37de8;
+    --lightblue:#5ac8fa;
+    --yellow:#f2c14e;
+    --pink:#e07bb0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+  .wrap{max-width:1180px;margin:0 auto;padding:36px 28px 60px;}
+
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;margin:0 0 10px;}
+  .sub{color:var(--muted);font-size:14.5px;margin:0;max-width:640px;line-height:1.5;}
+
+  .doc-header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:36px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+  .doc-header h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;margin:0;letter-spacing:-0.01em;color:var(--muted);}
+  .doc-header .badges{display:flex;gap:8px;flex-wrap:wrap;}
+  .mini-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:5px 12px;}
+
+  nav.tabs{display:flex;gap:6px;margin-bottom:8px;}
+  nav.tabs button{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.04em;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:8px 16px;cursor:pointer;}
+  nav.tabs button.active{color:var(--bg);background:var(--gold);border-color:var(--gold);}
+  nav.tabs button:hover:not(.active){color:var(--text);border-color:var(--muted);}
+
+  .section-divider{margin:44px 0 22px;padding-top:26px;border-top:1px solid var(--border);}
+  .section-divider.first{margin-top:0;padding-top:0;border-top:none;}
+  .section-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px;margin:2px 0 8px;letter-spacing:-0.01em;}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 20px 18px;position:relative;overflow:hidden;}
+  .kpi::after{content:"";position:absolute;right:-30px;top:-30px;width:100px;height:100px;border-radius:50%;opacity:.08;}
+  .kpi.revenue::after{background:var(--gold);}
+  .kpi.cost::after{background:var(--coral);}
+  .kpi.margin::after{background:var(--teal);}
+  .kpi.pct::after{background:var(--blue);}
+  .kpi.purple::after{background:var(--purple);}
+  .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+  .kpi .value{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-0.01em;}
+  .kpi .foot{font-size:12px;color:var(--muted);margin-top:8px;}
+  .kpi.revenue .value{color:var(--gold);}
+  .kpi.cost .value{color:var(--coral);}
+  .kpi.margin .value{color:var(--teal);}
+  .kpi.pct .value{color:var(--blue);}
+  .kpi.purple .value{color:var(--purple);}
+
+  .studs{display:flex;gap:5px;margin-bottom:10px;}
+  .stud{width:8px;height:8px;border-radius:50%;}
+
+  .row{display:grid;gap:16px;margin-bottom:16px;}
+  .row.two{grid-template-columns:1.3fr 1fr;}
+  .row.two.even{grid-template-columns:1fr 1fr;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 22px 12px;}
+  .panel h2{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;margin:0 0 2px;}
+  .panel .desc{font-size:12.5px;color:var(--muted);margin:0 0 16px;}
+  .chart-box{position:relative;height:260px;}
+  .chart-box.tall{height:320px;}
+
+  .callouts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;}
+  .callout{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:10px;padding:16px 18px;}
+  .callout.risk{border-left-color:var(--coral);}
+  .callout.ok{border-left-color:var(--teal);}
+  .callout.info{border-left-color:var(--blue);}
+  .callout h3{font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 8px;font-weight:600;}
+  .callout p{font-size:13.5px;line-height:1.5;margin:0;color:var(--text);}
+  .callout .big{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:17px;}
+
+  .table-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px;}
+  .table-panel .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .table-panel input[type=text]{font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);color:var(--text);min-width:220px;flex:1;}
+  .table-panel input[type=text]:focus{outline:none;border-color:var(--gold);}
+  .table-panel input[type=text]::placeholder{color:var(--muted);}
+  .table-scroll{max-height:420px;overflow:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:500;padding:0 10px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);cursor:pointer;white-space:nowrap;}
+  thead th:hover{color:var(--text);}
+  tbody td{padding:11px 10px;border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
+  tbody td.desc{font-family:'Inter',sans-serif;font-size:13px;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-2);}
+  .tag{display:inline-block;font-size:10.5px;font-family:'Inter',sans-serif;font-weight:600;padding:3px 8px;border-radius:20px;letter-spacing:.02em;white-space:nowrap;}
+  .num-right{text-align:right;}
+  .bar-cell{width:110px;}
+  .mbar{height:6px;border-radius:3px;background:var(--border);position:relative;overflow:hidden;}
+  .mbar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--teal);}
+  tfoot td{padding:14px 10px 4px;font-family:'IBM Plex Mono',monospace;font-weight:600;border-top:1px solid var(--border);border-bottom:none;color:var(--text);font-size:13px;}
+  .status-line{font-size:11.5px;color:var(--muted);margin-top:10px;font-family:'IBM Plex Mono',monospace;}
+  .sort-arrow{font-size:9px;margin-left:4px;opacity:.7;}
+
+  footer{margin-top:36px;font-size:11.5px;color:var(--muted);text-align:center;}
+
+  @media(max-width:840px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .row.two, .row.two.even{grid-template-columns:1fr;}
+    .callouts{grid-template-columns:1fr;}
+    table{font-size:11.5px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="doc-header">
+    <h1>Painel — Baixo giro Robótica &amp; performance LEGO obsoleto</h1>
+    <div class="badges">
+      <span class="mini-badge" id="badge-1">— SKUs baixo giro</span>
+      <span class="mini-badge" id="badge-2">— sessões monitoradas</span>
+      <span class="mini-badge">Positivo · Robótica &amp; Educação</span>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="lego">Performance — LEGO obsoleto</button>
+    <button class="tab-btn" data-tab="giro">Baixo giro — Robótica</button>
+  </nav>
+
+  <!-- ============================================================ -->
+  <!-- SEÇÃO 1 — BAIXO GIRO ROBÓTICA                                 -->
+  <!-- ============================================================ -->
+  <div id="panel-giro" class="tab-panel" style="display:none;">
+  <div class="section-divider first">
+    <p class="eyebrow">Estoque parado</p>
+    <h2 class="section-title">Baixo giro — Robótica</h2>
+    <p class="sub">Itens da categoria Robótica com giro baixo, conforme fechamento de 04/05. Estoque total e distribuição por SKU, para priorizar ação comercial antes de novas compras da linha.</p>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi purple">
+      <div class="studs"><div class="stud" style="background:var(--purple)"></div><div class="stud" style="background:var(--purple)"></div></div>
+      <div class="label">Itens de baixo giro</div>
+      <div class="value" id="g-count">—</div>
+      <div class="foot">categoria Robótica</div>
+    </div>
+    <div class="kpi cost">
+      <div class="studs"><div class="stud" style="background:var(--coral)"></div><div class="stud" style="background:var(--coral)"></div></div>
+      <div class="label">Estoque total parado</div>
+      <div class="value" id="g-total">—</div>
+      <div class="foot">unidades sem giro relevante</div>
+    </div>
+    <div class="kpi revenue">
+      <div class="studs"><div class="stud" style="background:var(--gold)"></div><div class="stud" style="background:var(--gold)"></div></div>
+      <div class="label">Maior estoque individual</div>
+      <div class="value" id="g-max">—</div>
+      <div class="foot" id="g-max-name">—</div>
+    </div>
+    <div class="kpi pct">
+      <div class="studs"><div class="stud" style="background:var(--blue)"></div><div class="stud" style="background:var(--blue)"></div></div>
+      <div class="label">Top 3 concentram</div>
+      <div class="value" id="g-top3">—</div>
+      <div class="foot">do estoque parado total</div>
+    </div>
+  </div>
+
+  <div class="row two even">
+    <div class="panel">
+      <h2>10 maiores estoques parados</h2>
+      <p class="desc">Unidades por SKU, do maior para o menor.</p>
+      <div class="chart-box tall"><canvas id="giroChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <h2>Distribuição por faixa de estoque</h2>
+      <p class="desc">Quantidade de SKUs em cada faixa de unidades paradas.</p>
+      <div class="chart-box tall"><canvas id="faixaChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="table-panel" id="giro-table-panel">
+    <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;margin:0 0 2px;">Lista completa — baixo giro Robótica</h2>
+    <p class="desc" style="margin-bottom:0;">Clique no cabeçalho para ordenar.</p>
+    <div class="toolbar">
+      <input type="text" id="g-search" placeholder="Buscar por código ou descrição…">
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th data-k="material" id="th-material">Código<span class="sort-arrow"></span></th>
+            <th data-k="descricao" id="th-descricao">Descrição<span class="sort-arrow"></span></th>
+            <th data-k="estoque" class="num-right" id="th-estoque">Estoque<span class="sort-arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="g-tbody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2">TOTAL</td>
+            <td class="num-right" id="g-tfoot-total">—</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="status-line" id="g-status"></p>
+  </div>
+
+  <div class="callouts" style="grid-template-columns:1fr 1fr;">
+    <div class="callout risk">
+      <h3>Maior concentração</h3>
+      <p>Os itens <strong>FLL Discover More</strong> e <strong>Caderno Engenharia Mission Moon FLL Jr</strong> somam <span class="big">1.788 un</span>, mais de um terço do estoque parado total.</p>
+    </div>
+    <div class="callout ok">
+      <h3>Cauda longa</h3>
+      <p>Cerca de metade dos SKUs tem menos de <span class="big">30 un</span> paradas — baixo risco individual, mas útil consolidar em ação única de saída.</p>
+    </div>
+  </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SEÇÃO 2 — PERFORMANCE LEGO OBSOLETO                           -->
+  <!-- ============================================================ -->
+  <div id="panel-lego" class="tab-panel">
+  <div class="section-divider first">
+    <p class="eyebrow">Performance digital</p>
+    <h2 class="section-title">Performance — LEGO obsoleto</h2>
+    <p class="sub">Sessões, adições ao carrinho e compras dos itens marcados como obsoletos na loja, entre 25/05 e 03/08/2026 (dados atualizados — Semana 5). A partir desta atualização, o acompanhamento passou de 8 para 16 SKUs (incluída a linha DUPLO). Visão consolidada, panorama semanal e detalhamento diário por item.</p>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi purple">
+      <div class="studs"><div class="stud" style="background:var(--purple)"></div><div class="stud" style="background:var(--purple)"></div></div>
+      <div class="label">Sessões no período</div>
+      <div class="value" id="l-sessions">—</div>
+      <div class="foot">25/05 a 03/08/2026</div>
+    </div>
+    <div class="kpi pct">
+      <div class="studs"><div class="stud" style="background:var(--blue)"></div><div class="stud" style="background:var(--blue)"></div></div>
+      <div class="label">Adições ao carrinho</div>
+      <div class="value" id="l-cart">—</div>
+      <div class="foot" id="l-cart-rate">—</div>
+    </div>
+    <div class="kpi cost">
+      <div class="studs"><div class="stud" style="background:var(--coral)"></div><div class="stud" style="background:var(--coral)"></div></div>
+      <div class="label">Compras concluídas</div>
+      <div class="value" id="l-purchased">—</div>
+      <div class="foot">em todo o período analisado</div>
+    </div>
+    <div class="kpi cost">
+      <div class="studs"><div class="stud" style="background:var(--coral)"></div><div class="stud" style="background:var(--coral)"></div></div>
+      <div class="label">Taxa de conversão</div>
+      <div class="value" id="l-conv">—</div>
+      <div class="foot">sessão → compra</div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:16px;">
+    <h2>Panorama de evolução semanal</h2>
+    <p class="desc">Sessões (barras), adições ao carrinho e número de compras (linhas) por semana, desde 25/05. A linha tracejada com estrela marca as semanas com venda.</p>
+    <div class="chart-box tall"><canvas id="weeklyEvoChart"></canvas></div>
+  </div>
+
+  <div class="row two even">
+    <div class="panel">
+      <h2>Sessões diárias — total</h2>
+      <p class="desc">Soma de sessões de todos os itens, por dia.</p>
+      <div class="chart-box tall"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <h2>Sessões diárias — por item</h2>
+      <p class="desc">Mesma série, separada por SKU — top 8 de 16 itens por volume de sessões.</p>
+      <div class="chart-box tall"><canvas id="perItemChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="table-panel" id="lego-week-panel">
+    <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;margin:0 0 2px;">Semana atual <span id="week-label" style="color:var(--muted);font-weight:400;"></span></h2>
+    <p class="desc" style="margin-bottom:0;">Sessões, carrinho e compras dos últimos 7 dias, ordenado por sessões.</p>
+    <div class="table-scroll" style="max-height:none;margin-top:14px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th class="num-right">Sessões</th>
+            <th class="num-right">Carrinho</th>
+            <th class="num-right">Compras</th>
+          </tr>
+        </thead>
+        <tbody id="w-tbody"></tbody>
+        <tfoot>
+          <tr>
+            <td>TOTAL — semana atual</td>
+            <td class="num-right" id="w-tfoot-sessions">—</td>
+            <td class="num-right" id="w-tfoot-cart">—</td>
+            <td class="num-right" id="w-tfoot-purchased">—</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-panel" id="lego-summary-panel">
+    <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;margin:0 0 2px;">Performance consolidada por item</h2>
+    <p class="desc" style="margin-bottom:0;">Clique no cabeçalho para ordenar.</p>
+    <div class="table-scroll" style="max-height:none;margin-top:14px;">
+      <table>
+        <thead>
+          <tr>
+            <th data-k="Nome do item" id="th-item">Item<span class="sort-arrow"></span></th>
+            <th data-k="sessions" class="num-right" id="th-sessions">Sessões<span class="sort-arrow"></span></th>
+            <th data-k="cart" class="num-right" id="th-cart">Carrinho<span class="sort-arrow"></span></th>
+            <th data-k="purchased" class="num-right" id="th-purchased">Compras<span class="sort-arrow"></span></th>
+            <th data-k="conv" class="num-right bar-cell" id="th-conv">Conversão<span class="sort-arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="l-tbody"></tbody>
+        <tfoot>
+          <tr>
+            <td id="l-tfoot-label">TOTAL</td>
+            <td class="num-right" id="l-tfoot-sessions">—</td>
+            <td class="num-right" id="l-tfoot-cart">—</td>
+            <td class="num-right" id="l-tfoot-purchased">—</td>
+            <td class="num-right" style="color:var(--coral)" id="l-tfoot-conv">—</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="table-panel" id="lego-raw-panel">
+    <h2 style="font-family:'Space Grotesk',sans-serif;font-size:15px;margin:0 0 2px;">Dados das sessões — detalhamento por item e dia</h2>
+    <p class="desc" style="margin-bottom:0;">263 registros da base de eventos (Semana 5, atualizado até 03/08 — agora com 16 SKUs). Filtre por item e ordene por qualquer coluna.</p>
+    <div class="toolbar">
+      <input type="text" id="r-search" placeholder="Buscar por item ou data…">
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th data-k="Nome do item" id="th-r-item">Item<span class="sort-arrow"></span></th>
+            <th data-k="DataSort" id="th-r-data">Data<span class="sort-arrow"></span></th>
+            <th data-k="sessions" class="num-right" id="th-r-sessions">Sessões<span class="sort-arrow"></span></th>
+            <th data-k="cart" class="num-right" id="th-r-cart">Carrinho<span class="sort-arrow"></span></th>
+            <th data-k="purchased" class="num-right" id="th-r-purchased">Compras<span class="sort-arrow"></span></th>
+            <th data-k="revenue" class="num-right" id="th-r-revenue">Receita<span class="sort-arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="r-tbody"></tbody>
+      </table>
+    </div>
+    <p class="status-line" id="r-status"></p>
+  </div>
+
+  <div class="callouts" style="grid-template-columns:1fr 1fr 1fr;">
+    <div class="callout ok">
+      <h3>Conversão finalmente decola</h3>
+      <p>Na semana de 27/07 a 02/08, o <strong>Boomtown Build</strong> sozinho gerou <span class="big">10</span> compras (R$ 2.871). No total, essa semana teve <span class="big">11</span> das 13 compras do período — a melhor semana até aqui, de longe.</p>
+    </div>
+    <div class="callout risk">
+      <h3>Tráfego mais que triplicou</h3>
+      <p>De 207 para <span class="big">717</span> sessões em uma semana (27/07–02/08) — puxado por Discover Set Cargo Connect, Máquinas Simples e Boomtown Build. Vale confirmar se houve campanha de mídia; o pico é grande demais para ser orgânico.</p>
+    </div>
+    <div class="callout info">
+      <h3>Catálogo ampliado para 16 SKUs</h3>
+      <p>A base passou a rastrear mais 8 itens da linha DUPLO (baixo giro). Ainda têm volume baixo (1–9 sessões cada), mas valem observação nas próximas semanas. Semana 11 (03/08) está incompleta — apenas 1 dia de dados.</p>
+    </div>
+  </div>
+  </div>
+
+  <footer>Fonte: Analise_Baixo_Giro_04_05.xlsx (fechamento 04/05) e LEGO Obsoleto Semana 5.xlsx (aba Base, 25/05 a 03/08/2026 · 16 SKUs)</footer>
+</div>
+
+<script>
+fetch('data.json').then(function(r){ return r.json(); }).then(function(DATA) {
+const BAIXO_GIRO = DATA.BAIXO_GIRO;
+const LEGO_ITEMS = DATA.LEGO_ITEMS;
+const LEGO_TREND = DATA.LEGO_TREND;
+const LEGO_PIVOT = DATA.LEGO_PIVOT;
+const LEGO_RAW = DATA.LEGO_RAW.map(r => {
+  const [dd, mm] = r.Data.split('/');
+  return {...r, DataSort: mm + dd};
+});
+
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = '#8d90a8';
+
+const fmt = n => n.toLocaleString('pt-BR');
+const fmtR = n => 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).style.display = 'block';
+  });
+});
+
+document.getElementById('badge-1').textContent = BAIXO_GIRO.length + ' SKUs baixo giro';
+document.getElementById('badge-2').textContent = fmt(LEGO_ITEMS.reduce((s,d)=>s+d.sessions,0)) + ' sessões monitoradas';
+
+/* ===================== SEÇÃO 1 — BAIXO GIRO ===================== */
+const totalEstoque = BAIXO_GIRO.reduce((s, d) => s + d.estoque, 0);
+const sortedByStock = [...BAIXO_GIRO].sort((a, b) => b.estoque - a.estoque);
+const top3Sum = sortedByStock.slice(0, 3).reduce((s, d) => s + d.estoque, 0);
+
+document.getElementById('g-count').textContent = BAIXO_GIRO.length;
+document.getElementById('g-total').textContent = fmt(totalEstoque) + ' un';
+document.getElementById('g-max').textContent = fmt(sortedByStock[0].estoque) + ' un';
+document.getElementById('g-max-name').textContent = sortedByStock[0].descricao;
+document.getElementById('g-top3').textContent = Math.round(top3Sum / totalEstoque * 100) + '%';
+document.getElementById('g-tfoot-total').textContent = fmt(totalEstoque);
+
+let gSortKey = 'estoque', gSortDir = -1;
+function renderGiro() {
+  const q = document.getElementById('g-search').value.toLowerCase();
+  const rows = BAIXO_GIRO.filter(d => d.descricao.toLowerCase().includes(q) || String(d.material).includes(q));
+  rows.sort((a, b) => {
+    const av = a[gSortKey], bv = b[gSortKey];
+    if (typeof av === 'string') return av.localeCompare(bv) * gSortDir;
+    return (av - bv) * gSortDir;
+  });
+  document.getElementById('g-tbody').innerHTML = rows.map(d => `
+    <tr>
+      <td>${d.material}</td>
+      <td class="desc">${d.descricao}</td>
+      <td class="num-right" style="color:var(--coral)">${fmt(d.estoque)}</td>
+    </tr>`).join('');
+  document.getElementById('g-status').textContent = rows.length + ' de ' + BAIXO_GIRO.length + ' itens · estoque filtrado: ' + fmt(rows.reduce((s,d) => s + d.estoque, 0)) + ' un';
+  document.querySelectorAll('#giro-table-panel thead th .sort-arrow').forEach(a => a.textContent = '');
+  document.getElementById('th-' + gSortKey).querySelector('.sort-arrow').textContent = gSortDir === 1 ? '▲' : '▼';
+}
+document.getElementById('g-search').addEventListener('input', renderGiro);
+document.querySelectorAll('#giro-table-panel th[data-k]').forEach(th => {
+  th.addEventListener('click', () => {
+    const k = th.dataset.k;
+    gSortDir = (gSortKey === k) ? -gSortDir : -1;
+    gSortKey = k;
+    renderGiro();
+  });
+});
+renderGiro();
+
+const top10 = sortedByStock.slice(0, 10);
+new Chart(document.getElementById('giroChart'), {
+  type: 'bar',
+  data: {
+    labels: top10.map(d => d.descricao.length > 30 ? d.descricao.slice(0, 30) + '…' : d.descricao),
+    datasets: [{ data: top10.map(d => d.estoque), backgroundColor: '#e8a33d', borderRadius: 4, maxBarThickness: 20 }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmt(c.parsed.x) + ' un' } } },
+    scales: {
+      x: { grid: { color: '#2c2f45' }, ticks: { callback: v => fmt(v) } },
+      y: { grid: { display: false }, ticks: { font: { size: 10.5 } } }
+    }
+  }
+});
+
+const faixas = [
+  { label: '1–10 un', min: 1, max: 10 },
+  { label: '11–30 un', min: 11, max: 30 },
+  { label: '31–100 un', min: 31, max: 100 },
+  { label: '101–300 un', min: 101, max: 300 },
+  { label: '300+ un', min: 301, max: Infinity }
+];
+const faixaCounts = faixas.map(f => BAIXO_GIRO.filter(d => d.estoque >= f.min && d.estoque <= f.max).length);
+new Chart(document.getElementById('faixaChart'), {
+  type: 'bar',
+  data: {
+    labels: faixas.map(f => f.label),
+    datasets: [{ data: faixaCounts, backgroundColor: ['#4fc9a8','#6c8cd5','#a37de8','#e8a33d','#e0604f'], borderRadius: 4, maxBarThickness: 40 }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + ' SKUs' } } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#2c2f45' }, ticks: { stepSize: 5 } }
+    }
+  }
+});
+
+/* ===================== SEÇÃO 2 — LEGO OBSOLETO ===================== */
+const totalSessions = LEGO_ITEMS.reduce((s, d) => s + d.sessions, 0);
+const totalCart = LEGO_ITEMS.reduce((s, d) => s + d.cart, 0);
+const totalPurchased = LEGO_ITEMS.reduce((s, d) => s + d.purchased, 0);
+
+document.getElementById('l-sessions').textContent = fmt(totalSessions);
+document.getElementById('l-cart').textContent = fmt(totalCart);
+document.getElementById('l-cart-rate').textContent = (totalCart / totalSessions * 100).toFixed(1) + '% das sessões';
+document.getElementById('l-purchased').textContent = fmt(totalPurchased);
+document.getElementById('l-conv').textContent = (totalPurchased / totalSessions * 100).toFixed(1) + '%';
+document.getElementById('l-tfoot-sessions').textContent = fmt(totalSessions);
+document.getElementById('l-tfoot-cart').textContent = fmt(totalCart);
+document.getElementById('l-tfoot-purchased').textContent = fmt(totalPurchased);
+document.getElementById('l-tfoot-label').textContent = 'TOTAL (' + LEGO_ITEMS.length + ' SKUs)';
+document.getElementById('l-tfoot-conv').textContent = (totalPurchased / totalSessions * 100).toFixed(1) + '%';
+
+/* ===================== SEMANA ATUAL ===================== */
+const weekData = DATA.LEGO_WEEK_CURRENT;
+document.getElementById('week-label').textContent = '— ' + weekData.label;
+const weekItemsSorted = [...weekData.items].sort((a, b) => b.sessions - a.sessions);
+document.getElementById('w-tbody').innerHTML = weekItemsSorted.map(d => `
+  <tr>
+    <td class="desc">${d['Nome do item']}</td>
+    <td class="num-right">${d.sessions}</td>
+    <td class="num-right">${d.cart}</td>
+    <td class="num-right" style="color:var(--coral)">${d.purchased}</td>
+  </tr>`).join('');
+document.getElementById('w-tfoot-sessions').textContent = fmt(weekItemsSorted.reduce((s,d)=>s+d.sessions,0));
+document.getElementById('w-tfoot-cart').textContent = fmt(weekItemsSorted.reduce((s,d)=>s+d.cart,0));
+document.getElementById('w-tfoot-purchased').textContent = fmt(weekItemsSorted.reduce((s,d)=>s+d.purchased,0));
+
+let lSortKey = 'sessions', lSortDir = -1;
+function renderLego() {
+  const rows = [...LEGO_ITEMS].map(d => ({...d, conv: d.sessions ? d.purchased / d.sessions * 100 : 0}));
+  rows.sort((a, b) => {
+    const av = a[lSortKey], bv = b[lSortKey];
+    if (typeof av === 'string') return av.localeCompare(bv) * lSortDir;
+    return (av - bv) * lSortDir;
+  });
+  document.getElementById('l-tbody').innerHTML = rows.map(d => `
+    <tr>
+      <td class="desc">${d['Nome do item']}</td>
+      <td class="num-right">${d.sessions}</td>
+      <td class="num-right">${d.cart}</td>
+      <td class="num-right" style="color:var(--coral)">${d.purchased}</td>
+      <td class="num-right">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">
+          <div class="mbar" style="width:50px;"><i style="width:${d.conv}%;background:${d.conv>0?'#4fc9a8':'#e0604f'}"></i></div>
+          <span style="color:${d.conv>0?'var(--teal)':'var(--coral)'}">${d.conv.toFixed(1)}%</span>
+        </div>
+      </td>
+    </tr>`).join('');
+  document.querySelectorAll('#lego-summary-panel thead th .sort-arrow').forEach(a => a.textContent = '');
+  const idMap = { 'Nome do item': 'th-item', sessions: 'th-sessions', cart: 'th-cart', purchased: 'th-purchased', conv: 'th-conv' };
+  document.getElementById(idMap[lSortKey]).querySelector('.sort-arrow').textContent = lSortDir === 1 ? '▲' : '▼';
+}
+document.querySelectorAll('#lego-summary-panel th[data-k]').forEach(th => {
+  th.addEventListener('click', () => {
+    const k = th.dataset.k;
+    lSortDir = (lSortKey === k) ? -lSortDir : -1;
+    lSortKey = k;
+    renderLego();
+  });
+});
+renderLego();
+
+const weeklyEvo = DATA.LEGO_WEEKLY_EVOLUTION;
+new Chart(document.getElementById('weeklyEvoChart'), {
+  data: {
+    labels: weeklyEvo.map(w => w.label + ' (' + w.range + ')'),
+    datasets: [
+      {
+        type: 'bar',
+        label: 'Sessões',
+        data: weeklyEvo.map(w => w.sessions),
+        backgroundColor: weeklyEvo.map(w => w.purchased > 0 ? '#4fc9a8' : '#e8a33d'),
+        borderRadius: 4,
+        maxBarThickness: 46,
+        order: 2
+      },
+      {
+        type: 'line',
+        label: 'Carrinho',
+        data: weeklyEvo.map(w => w.cart),
+        borderColor: '#6c8cd5',
+        backgroundColor: '#6c8cd5',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#6c8cd5',
+        tension: 0.3,
+        yAxisID: 'y1',
+        order: 1
+      },
+      {
+        type: 'line',
+        label: 'Compras',
+        data: weeklyEvo.map(w => w.purchased),
+        borderColor: '#4fc9a8',
+        backgroundColor: '#4fc9a8',
+        borderWidth: 2,
+        borderDash: [4, 3],
+        pointRadius: weeklyEvo.map(w => w.purchased > 0 ? 5 : 3),
+        pointStyle: weeklyEvo.map(w => w.purchased > 0 ? 'star' : 'circle'),
+        pointBackgroundColor: '#4fc9a8',
+        tension: 0.3,
+        yAxisID: 'y1',
+        order: 0
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', align: 'end', labels: { boxWidth: 10, boxHeight: 10, font: { size: 11 } } },
+      tooltip: {
+        callbacks: {
+          afterBody: items => {
+            const w = weeklyEvo[items[0].dataIndex];
+            return w.purchased > 0 ? ['', '★ ' + w.purchased + ' compra(s) · R$ ' + w.revenue.toLocaleString('pt-BR')] : [];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10.5 } } },
+      y: { beginAtZero: true, grid: { color: '#2c2f45' }, title: { display: true, text: 'Sessões', color: '#8d90a8', font: { size: 10.5 } } },
+      y1: { beginAtZero: true, position: 'right', grid: { display: false }, title: { display: true, text: 'Carrinho / Compras', color: '#8d90a8', font: { size: 10.5 } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
+  data: {
+    labels: LEGO_TREND.map(d => d.DataStr),
+    datasets: [{
+      data: LEGO_TREND.map(d => d.sessions),
+      borderColor: '#e8a33d',
+      backgroundColor: '#e8a33d22',
+      fill: true, tension: 0.25, pointRadius: 2, borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + ' sessões · 0 compras' } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 14, font: { size: 10 } } },
+      y: { beginAtZero: true, grid: { color: '#2c2f45' } }
+    }
+  }
+});
+
+const itemColors = ['#e8a33d','#e0604f','#4fc9a8','#6c8cd5','#a37de8','#5ac8fa','#f2c14e','#e07bb0'];
+const topPivotSeries = [...LEGO_PIVOT.series]
+  .map(s => ({...s, total: s.data.reduce((a,b)=>a+b,0)}))
+  .sort((a,b) => b.total - a.total)
+  .slice(0, 8);
+new Chart(document.getElementById('perItemChart'), {
+  type: 'line',
+  data: {
+    labels: LEGO_PIVOT.dates,
+    datasets: topPivotSeries.map((s, i) => ({
+      label: s.item.replace('LEGO® ', '').length > 24 ? s.item.replace('LEGO® ', '').slice(0,24) + '…' : s.item.replace('LEGO® ', ''),
+      data: s.data,
+      borderColor: itemColors[i % itemColors.length],
+      backgroundColor: itemColors[i % itemColors.length] + '22',
+      borderWidth: 1.6, pointRadius: 0, tension: 0.3
+    }))
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', align: 'end', labels: { boxWidth: 8, boxHeight: 8, font: { size: 9.5 } } },
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 12, font: { size: 9.5 } } },
+      y: { beginAtZero: true, grid: { color: '#2c2f45' } }
+    }
+  }
+});
+
+let rSortKey = 'DataSort', rSortDir = 1;
+function renderRaw() {
+  const q = document.getElementById('r-search').value.toLowerCase();
+  const rows = LEGO_RAW.filter(d => d['Nome do item'].toLowerCase().includes(q) || d.Data.includes(q));
+  rows.sort((a, b) => {
+    const av = a[rSortKey], bv = b[rSortKey];
+    if (typeof av === 'string') return av.localeCompare(bv) * rSortDir;
+    return (av - bv) * rSortDir;
+  });
+  document.getElementById('r-tbody').innerHTML = rows.map(d => `
+    <tr>
+      <td class="desc">${d['Nome do item']}</td>
+      <td>${d.Data}</td>
+      <td class="num-right">${d.sessions}</td>
+      <td class="num-right">${d.cart}</td>
+      <td class="num-right" style="color:${d.purchased>0?'var(--teal)':'var(--muted)'}">${d.purchased}</td>
+      <td class="num-right">${fmtR(d.revenue)}</td>
+    </tr>`).join('');
+  document.getElementById('r-status').textContent = rows.length + ' de ' + LEGO_RAW.length + ' registros';
+  document.querySelectorAll('#lego-raw-panel thead th .sort-arrow').forEach(a => a.textContent = '');
+  const idMap = { 'Nome do item': 'th-r-item', DataSort: 'th-r-data', sessions: 'th-r-sessions', cart: 'th-r-cart', purchased: 'th-r-purchased', revenue: 'th-r-revenue' };
+  document.getElementById(idMap[rSortKey]).querySelector('.sort-arrow').textContent = rSortDir === 1 ? '▲' : '▼';
+}
+document.getElementById('r-search').addEventListener('input', renderRaw);
+document.querySelectorAll('#lego-raw-panel th[data-k]').forEach(th => {
+  th.addEventListener('click', () => {
+    const k = th.dataset.k;
+    rSortDir = (rSortKey === k) ? -rSortDir : 1;
+    rSortKey = k;
+    renderRaw();
+  });
+});
+renderRaw();
+});
+</script>
+</body>
+</html>
