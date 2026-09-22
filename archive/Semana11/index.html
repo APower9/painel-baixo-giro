@@ -81,6 +81,7 @@
   .chart-box.tall{height:320px;}
 
   .callouts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;}
+  .callouts.two{grid-template-columns:repeat(2,1fr);}
   .callout{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:10px;padding:16px 18px;}
   .callout.risk{border-left-color:var(--coral);}
   .callout.ok{border-left-color:var(--teal);}
@@ -118,7 +119,7 @@
     .kpi.hero{grid-column:1/-1;}
     .kpi.hero .value{font-size:30px;}
     .row.two, .row.two.even{grid-template-columns:1fr;}
-    .callouts{grid-template-columns:1fr;}
+    .callouts, .callouts.two{grid-template-columns:1fr;}
     table{font-size:11.5px;}
   }
 </style>
@@ -217,7 +218,7 @@
     <p class="status-line" id="g-status"></p>
   </div>
 
-  <div class="callouts" style="grid-template-columns:1fr 1fr;">
+  <div class="callouts two">
     <div class="callout risk">
       <h3>Maior concentração</h3>
       <p>Os itens <strong>FLL Discover More</strong> e <strong>Caderno Engenharia Mission Moon FLL Jr</strong> somam <span class="big">1.788 un</span>, mais de um terço do estoque parado total.</p>
@@ -369,7 +370,7 @@
     <p class="status-line" id="r-status"></p>
   </div>
 
-  <div class="callouts" style="grid-template-columns:1fr 1fr 1fr;">
+  <div class="callouts">
     <div class="callout ok">
       <h3>Setembro é o melhor mês em vendas</h3>
       <p>As semanas de 07–13/09 e 14–20/09 somaram <span class="big">5</span> compras e R$ 2.767,80 — mais receita do que qualquer mês anterior. Destaques: <strong>WeDo 2.0</strong> (1 compra, R$ 1.399, o maior ticket do período) e <strong>Explore Set Cargo Connect 45817</strong>, que vendeu em duas semanas seguidas.</p>
