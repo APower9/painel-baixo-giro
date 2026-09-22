@@ -173,7 +173,7 @@ As seções 9–11 abaixo eram "sugestões não implementadas". Foram fechadas c
 - **`DATA` desacoplado do HTML.** `index.html` agora carrega `fetch('data.json')` em vez de embutir `const DATA = {...}` inline. Isso implica que o painel **não funciona mais abrindo o arquivo direto (`file://`)** — precisa sempre ser servido via HTTP (local: `python -m http.server`; produção: GitHub Pages, seção 10).
 - **Snapshots históricos ficam congelados.** Cada semana publicada é arquivada como um par autocontido `archive/SemanaN/index.html` + `archive/SemanaN/data.json` (cópia exata do que foi publicado, não referencia o `data.json` "atual" da raiz — senão o histórico mudaria de conteúdo quando os dados da semana seguinte forem publicados).
 - **`merge_map.json`** (raiz do repo) substitui o mapa de nomes que antes só existia na cabeça/conversa: `{nome_errado: nome_canonico}`, versionado e revisado manualmente a cada semana.
-- **Ainda não implementado:** script Python reutilizável para o pipeline completo (ler `.xlsx` → fix de encoding → merge → recalcular `DATA.LEGO_*` → validar somas → gravar `data.json`) — ver seção 11 para o desenho.
+- **`build.py`** (raiz do repo) implementa o pipeline completo: ler `.xlsx` → fix de encoding → aplicar `merge_map.json` → recalcular as 6 chaves `DATA.LEGO_*` → validar somas → gravar `data.json`, preservando `DATA.BAIXO_GIRO`. Uso: `python build.py "Semana N.xlsx"` (`--check` só valida; `--allow-new` libera o gate de SKU novo). Os textos editoriais do `index.html` e o arquivamento em `archive/SemanaN/` continuam manuais.
 - **Item em aberto, não decidido:** a pasta de origem tem dois arquivos de "baixo giro" não documentados neste spec (`Analise Baixo Giro 04.05 (1).xlsx`, 8,2 MB, 21/05; `Ficha Tecnica - Itens baixo giro revendas.xlsx`, 11 MB, 06/08). Antes de tocar em `DATA.BAIXO_GIRO` de novo, investigar o que são — pode ser que o snapshot fixo de 04/05 usado hoje já esteja desatualizado.
 
 ## 10. Hospedagem, acesso e publicação — decisões
@@ -240,5 +240,5 @@ A Positivo já tem uma instância n8n interna (`https://n8n.positivo.corp`), e e
 
 ### Ainda não implementado
 - O workflow n8n em si (trigger + nó de código Python + gravação em `drafts/` + notificação Teams).
-- O script Python de processamento reutilizável (hoje a lógica de fix de encoding/merge/recálculo só existe como pseudo-código nas seções 4 e 7 deste documento).
+- ~~O script Python de processamento reutilizável~~ — **feito (22/09/2026): `build.py` na raiz do repo** (ver seção 9). O nó de código do n8n pode chamá-lo em vez de reimplementar a lógica.
 
