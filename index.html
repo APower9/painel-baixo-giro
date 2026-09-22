@@ -61,6 +61,12 @@
   .kpi.margin .value{color:var(--teal);}
   .kpi.pct .value{color:var(--blue);}
   .kpi.purple .value{color:var(--purple);}
+  .kpi-grid.has-hero{grid-template-columns:1.7fr 1fr 1fr 1fr 1fr;}
+  .kpi.hero{background:linear-gradient(135deg,var(--surface) 0%,var(--surface-2) 100%);border-color:rgba(232,163,61,.45);}
+  .kpi.hero::after{width:150px;height:150px;right:-45px;top:-45px;opacity:.13;}
+  .kpi.hero .value{font-size:38px;line-height:1.1;}
+  .kpi.hero .label{color:var(--gold);opacity:.85;}
+  .kpi-grid.has-hero .kpi .label{min-height:2.3em;}
 
   .studs{display:flex;gap:5px;margin-bottom:10px;}
   .stud{width:8px;height:8px;border-radius:50%;}
@@ -108,7 +114,9 @@
   footer{margin-top:36px;font-size:11.5px;color:var(--muted);text-align:center;}
 
   @media(max-width:840px){
-    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .kpi-grid, .kpi-grid.has-hero{grid-template-columns:repeat(2,1fr);}
+    .kpi.hero{grid-column:1/-1;}
+    .kpi.hero .value{font-size:30px;}
     .row.two, .row.two.even{grid-template-columns:1fr;}
     .callouts{grid-template-columns:1fr;}
     table{font-size:11.5px;}
@@ -231,7 +239,13 @@
     <p class="sub">Sessões, adições ao carrinho e compras dos itens marcados como obsoletos na loja, entre 25/05 e 21/09/2026 (dados atualizados — Semana 11, 16 SKUs). Visão consolidada, panorama semanal e detalhamento diário por item.</p>
   </div>
 
-  <div class="kpi-grid">
+  <div class="kpi-grid has-hero">
+    <div class="kpi revenue hero">
+      <div class="studs"><div class="stud" style="background:var(--gold)"></div><div class="stud" style="background:var(--gold)"></div></div>
+      <div class="label">Receita total no período</div>
+      <div class="value" id="l-revenue">—</div>
+      <div class="foot" id="l-revenue-foot">—</div>
+    </div>
     <div class="kpi purple">
       <div class="studs"><div class="stud" style="background:var(--purple)"></div><div class="stud" style="background:var(--purple)"></div></div>
       <div class="label">Sessões no período</div>
@@ -493,7 +507,12 @@ new Chart(document.getElementById('faixaChart'), {
 const totalSessions = LEGO_ITEMS.reduce((s, d) => s + d.sessions, 0);
 const totalCart = LEGO_ITEMS.reduce((s, d) => s + d.cart, 0);
 const totalPurchased = LEGO_ITEMS.reduce((s, d) => s + d.purchased, 0);
+const totalRevenue = LEGO_ITEMS.reduce((s, d) => s + d.revenue, 0);
 
+document.getElementById('l-revenue').textContent = fmtR(totalRevenue);
+document.getElementById('l-revenue-foot').textContent = totalPurchased > 0
+  ? `${fmt(totalPurchased)} compras · ticket médio ${fmtR(totalRevenue / totalPurchased)}`
+  : 'nenhuma compra no período';
 document.getElementById('l-sessions').textContent = fmt(totalSessions);
 document.getElementById('l-cart').textContent = fmt(totalCart);
 document.getElementById('l-cart-rate').textContent = (totalCart / totalSessions * 100).toFixed(1) + '% das sessões';
